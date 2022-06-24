@@ -12,4 +12,6 @@ zephyr_library_sources_ifdef(CONFIG_IPM_CAVS_IDC ipm_cavs_idc.c)
 zephyr_library_sources_ifdef(CONFIG_IPM_STM32_HSEM ipm_stm32_hsem.c)
 zephyr_library_sources_ifdef(CONFIG_IPM_CAVS_HOST ipm_cavs_host.c)
 zephyr_library_sources_ifdef(CONFIG_ESP32_SOFT_IPM ipm_esp32.c)
+zephyr_library_sources_ifdef(CONFIG_IPM_GIC_SGI ipm_gic_sgi.c)
+
 zephyr_library_sources_ifdef(CONFIG_USERSPACE   ipm_handlers.c)
