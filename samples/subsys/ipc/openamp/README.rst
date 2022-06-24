@@ -51,6 +51,13 @@ Building the application for mimxrt1170_evk_cm7
    :board: mimxrt1170_evk_cm7
    :goals: debug
 
+Building the application for qemu_cortex_a53
+***********************************************
+.. zephyr-app-commands::
+   :zephyr-app: samples/subsys/ipc/openamp
+   :board: qemu_cortex_a53
+   :goals: run
+
 Open a serial terminal (minicom, putty, etc.) and connect the board with the
 following settings:
 

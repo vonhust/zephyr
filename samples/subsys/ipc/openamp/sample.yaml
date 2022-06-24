@@ -8,6 +8,7 @@ tests:
       - lpcxpresso55s69_cpu0
       - mps2_an521
       - v2m_musca_b1
+      - qemu_cortex_a53
     integration_platforms:
       - mps2_an521
     tags: ipm
