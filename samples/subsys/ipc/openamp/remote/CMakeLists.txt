@@ -7,6 +7,11 @@ cmake_minimum_required(VERSION 3.20.0)
 #
 
 
+if("${BOARD}" STREQUAL "qemu_cortex_a53")
+	set(CONF_FILE "prj_qemu_cortex_a53.conf")
+	set(DTC_OVERLAY_FILE CACHE STRING "boards/qemu_cortex_a53.overlay" FORCE)
+endif()
+
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(openamp_remote)
 message(STATUS "${BOARD} compiles as remote in this sample")
