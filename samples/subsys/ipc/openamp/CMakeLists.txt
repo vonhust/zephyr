@@ -18,7 +18,7 @@ elseif("${BOARD}" STREQUAL "v2m_musca_b1")
   set(BOARD_REMOTE "v2m_musca_b1_ns")
 elseif("${BOARD}" STREQUAL "qemu_cortex_a53")
   set(QEMU_EXTRA_FLAGS "-m;1G;-serial;pty;-smp;2;-device;loader,file=${REMOTE_ZEPHYR_DIR}/zephyr.elf,cpu-num=1")
-  set(BOARD_REMOTE "qemu_cortex_a53")
+  set(BOARD_REMOTE "qemu_cortex_a53_remote")
 else()
   message(FATAL_ERROR "${BOARD} was not supported for this sample")
 endif()
@@ -34,12 +34,22 @@ target_sources(app PRIVATE src/main.c)
 
 include(ExternalProject)
 
+# ExternalProject_Add(
+#   openamp_remote
+#   SOURCE_DIR ${APPLICATION_SOURCE_DIR}/remote
+#   INSTALL_COMMAND ""      # This particular build system has no install command
+#   CMAKE_CACHE_ARGS -DBOARD:STRING=${BOARD_REMOTE}
+#   CMAKE_CACHE_ARGS -DDTC_OVERLAY_FILE:STRING=${DTC_OVERLAY_FILE}
+#   BUILD_BYPRODUCTS "${REMOTE_ZEPHYR_DIR}/${KERNEL_BIN_NAME}"
+#   # NB: Do we need to pass on more CMake variables?
+#   BUILD_ALWAYS True
+# )
+
 ExternalProject_Add(
   openamp_remote
-  SOURCE_DIR ${APPLICATION_SOURCE_DIR}/remote
+  SOURCE_DIR ${ZEPHYR_BASE}/samples/subsys/shell/devmem_load
   INSTALL_COMMAND ""      # This particular build system has no install command
   CMAKE_CACHE_ARGS -DBOARD:STRING=${BOARD_REMOTE}
-  CMAKE_CACHE_ARGS -DDTC_OVERLAY_FILE:STRING=${DTC_OVERLAY_FILE}
   BUILD_BYPRODUCTS "${REMOTE_ZEPHYR_DIR}/${KERNEL_BIN_NAME}"
   # NB: Do we need to pass on more CMake variables?
   BUILD_ALWAYS True

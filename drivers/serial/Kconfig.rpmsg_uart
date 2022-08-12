@@ -1,0 +1,24 @@
+# Rpmsg service based UART
+#
+# Copyright (c) 2022 openEuler Embedded
+# SPDX-License-Identifier: Apache-2.0
+
+config UART_RPMSG
+	bool "RPMSG service based UART driver"
+	select SERIAL_HAS_DRIVER
+	select SERIAL_SUPPORT_INTERRUPT
+	select RPMSG_SERVICE
+	select RING_BUFFER
+	help
+		Enable RPMSG service based uart driver. Zephyr runs as
+		a remote OS
+
+if UART_RPMSG
+
+config UART_RPMSG_RING_BUF_SIZE
+	int "RPMSG UART receive ring buf size"
+	default 512
+	help
+	  Set the size of ring buffer used for rpmsg uart receive
+
+endif # UART_RPMSG

@@ -127,9 +127,10 @@ static void platform_ipm_callback(const struct device *dev, void *context,
 int endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 		size_t len, uint32_t src, void *priv)
 {
-	received_data = *((unsigned int *) data);
+	// received_data = *((unsigned int *) data);
 
-	k_sem_give(&data_rx_sem);
+	// k_sem_give(&data_rx_sem);
+	k_str_out(data, len);
 
 	return RPMSG_SUCCESS;
 }
@@ -271,23 +272,31 @@ void app_task(void *arg1, void *arg2, void *arg3)
 	/* Wait til nameservice ep is setup */
 	k_sem_take(&ept_sem, K_FOREVER);
 
-	while (message < 100) {
-		status = send_message(message);
-		if (status < 0) {
-			printk("send_message(%d) failed with status %d\n",
-			       message, status);
-			goto _cleanup;
-		}
+	//status = send_message(message);
 
-		message = receive_message();
-		printk("Master core received a message: %d\n", message);
+	rpmsg_send(ep, "help\r\n", 6);
 
-		message++;
+	while (1) {
+		k_sem_take(&data_sem, K_FOREVER);
+		virtqueue_notification(vq[0]);
 	}
+	// while (message < 100) {
+	// 	status = send_message(message);
+	// 	if (status < 0) {
+	// 		printk("send_message(%d) failed with status %d\n",
+	// 		       message, status);
+	// 		goto _cleanup;
+	// 	}
 
-_cleanup:
-	rpmsg_deinit_vdev(&rvdev);
-	metal_finish();
+	// 	message = receive_message();
+	// 	printk("Master core received a message: %d\n", message);
+
+	// 	message++;
+	// }
+
+// _cleanup:
+// 	rpmsg_deinit_vdev(&rvdev);
+// 	metal_finish();
 
 	printk("OpenAMP demo ended.\n");
 }

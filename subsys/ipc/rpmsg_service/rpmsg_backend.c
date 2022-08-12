@@ -56,6 +56,13 @@ static const struct device *ipm_rx_handle;
 static const struct device *ipm_handle;
 #endif
 
+/*
+ * 32 bit: -1 == 0xffffffff
+ * 64 bit: -1 == 0xffffffffffffffff
+ */
+#define DEFAULT_PAGE_SHIFT (-1UL)
+#define DEFAULT_PAGE_MASK  (-1UL)
+
 static metal_phys_addr_t shm_physmap[] = { SHM_START_ADDR };
 static struct metal_device shm_device = {
 	.name = SHM_DEVICE_NAME,
@@ -66,8 +73,8 @@ static struct metal_device shm_device = {
 			.virt       = (void *) SHM_START_ADDR,
 			.physmap    = shm_physmap,
 			.size       = SHM_SIZE,
-			.page_shift = 0xffffffff,
-			.page_mask  = 0xffffffff,
+			.page_shift = DEFAULT_PAGE_SHIFT,
+			.page_mask  = DEFAULT_PAGE_MASK,
 			.mem_flags  = 0,
 			.ops        = { NULL },
 		},

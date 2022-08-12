@@ -31,13 +31,15 @@ extern "C" {
  *             for master and slave
  * @param cb Callback executed when data are available on given endpoint
  *
+ * @param priv endpoint private data, transferred to cb when cb is called
+ *
  * @retval >=0 id of registered endpoint on success;
  * @retval -EINPROGRESS when requested to register an endpoint after endpoints
  *         creation procedure has started;
  * @retval -ENOMEM when there is not enough slots to register the endpoint;
  * @retval <0 an other negative errno code, reported by rpmsg.
  */
-int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb);
+int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb, void *priv);
 
 /**
  * @brief Send data using given IPC endpoint
@@ -65,6 +67,8 @@ int rpmsg_service_send(int endpoint_id, const void *data, size_t len);
  * @retval false endpoint not bound
  */
 bool rpmsg_service_endpoint_is_bound(int endpoint_id);
+
+void rpmsg_service_endpoint_bound(int endpoint_id);
 
 /**
  * @}

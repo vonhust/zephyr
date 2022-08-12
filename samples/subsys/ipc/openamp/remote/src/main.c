@@ -241,6 +241,8 @@ void app_task(void *arg1, void *arg2, void *arg3)
 		printk("rpmsg_create_ept failed %d\n", status);
 		return;
 	}
+	
+	status = send_message(message);
 
 	while (message < 99) {
 		message = receive_message();

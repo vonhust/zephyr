@@ -131,7 +131,7 @@ static int rpmsg_service_init(const struct device *dev)
 	return 0;
 }
 
-int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb)
+int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb, void *priv)
 {
 	if (ep_crt_started) {
 		return -EINPROGRESS;
@@ -141,7 +141,7 @@ int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb)
 		if (!endpoints[i].name) {
 			endpoints[i].name = name;
 			endpoints[i].cb = cb;
-
+			endpoints[i].ep.priv = priv;
 			return i;
 		}
 	}
@@ -154,6 +154,11 @@ int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb)
 bool rpmsg_service_endpoint_is_bound(int endpoint_id)
 {
 	return endpoints[endpoint_id].bound;
+}
+
+void rpmsg_service_endpoint_bound(int endpoint_id)
+{
+	endpoints[endpoint_id].bound = true;
 }
 
 int rpmsg_service_send(int endpoint_id, const void *data, size_t len)
