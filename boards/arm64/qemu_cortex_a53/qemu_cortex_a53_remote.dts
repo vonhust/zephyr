@@ -20,7 +20,7 @@
 
 	chosen {
 		zephyr,sram = &sram1;
-		zephyr,console = &uart_rpmsg;
+		zephyr,console = &uart1;
 		zephyr,shell-uart = &uart_rpmsg;
 		zephyr,flash = &flash0;
 		/*
@@ -69,5 +69,10 @@
 		};
 
 	};
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
 };
 

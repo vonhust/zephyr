@@ -60,6 +60,7 @@ static int uart_rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 		rpmsg_service_endpoint_bound(uart_data->ep_id);
 	}
 
+	printk("received data:%d\r\n", len);
 	/* put the received data into ring buf */
 	wrote = ring_buf_put(&uart_data->rb, data, len);
 

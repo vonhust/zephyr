@@ -11,10 +11,10 @@ CONFIG_SERIAL=y
 
 # Enable console
 CONFIG_CONSOLE=y
-# no early console, because uart_rpmsg is used
-CONFIG_BOOT_BANNER=n
-CONFIG_EARLY_CONSOLE=n
 CONFIG_UART_CONSOLE=y
+
+# enable PL011 as a debug console
+CONFIG_UART_PL011=y
 
 # to use remote, must be in Non-Secure world
 CONFIG_ARMV8_A_NS=y
