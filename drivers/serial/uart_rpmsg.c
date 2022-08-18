@@ -125,6 +125,7 @@ static int uart_rpmsg_fifo_fill(const struct device *dev, const uint8_t *tx_data
 	struct uart_rpmsg_data *data = (struct uart_rpmsg_data *)dev->data;
 	int ret = 0, sent = 0;
 
+	data->tx_busy = 1;
 	while (len) {
 		sent = rpmsg_service_send(data->ep_id, tx_data, len);
 		/* < 0, send error */
@@ -160,7 +161,6 @@ static void uart_rpmsg_irq_tx_enable(const struct device *dev)
 	 */
 
 	if (rpmsg_service_endpoint_is_bound(data->ep_id)) {
-		data->tx_busy = 1;
 		uart_rpmsg_cb(data);
 	}
 }
