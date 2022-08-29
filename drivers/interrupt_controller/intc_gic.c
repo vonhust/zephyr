@@ -231,7 +231,10 @@ int arm_gic_init(const struct device *unused)
 	ARG_UNUSED(unused);
 
 	/* Init of Distributor interface registers */
-	gic_dist_init();
+	/* openamp client does not init the global part of GIC */
+	if (!IS_ENABLED(CONFIG_OPENAMP_SLAVE)) {
+		gic_dist_init();
+	}
 
 	/* Init CPU interface registers */
 	gic_cpu_init();
