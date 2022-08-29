@@ -1,0 +1,8 @@
+# Copyright (c) 2022 openEuler Embedded
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_RPI4_CORTEX_A72
+	bool "Raspberry Pi 4 (cortex-a72)"
+	select ARM64
+	select CPU_CORTEX_A72
+	select GIC_V2
