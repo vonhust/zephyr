@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+extern volatile uint8_t debug_phase[];
 /*
  * Zephyr currently assumes the size of a couple standard types to simplify
  * print string formats. Let's make sure this doesn't change without notice.

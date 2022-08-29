@@ -31,3 +31,7 @@ const struct arm_mmu_config mmu_config = {
 	.num_regions = ARRAY_SIZE(mmu_regions),
 	.mmu_regions = mmu_regions,
 };
+
+#define NUM_DEBUG_PHASE 10
+
+volatile uint8_t debug_phase[NUM_DEBUG_PHASE] = {[0 ... NUM_DEBUG_PHASE - 1]0xfe};
