@@ -1,0 +1,17 @@
+# Copyright (c) 2022 openEuler Embedded
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_RPI4_CORTEX_A72
+
+config SOC
+	default "rpi4_cortex_a72"
+
+config NUM_IRQS
+	# must be >= the highest interrupt number used
+	# - include the UART interrupts
+	default 100
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 54000000
+
+endif # SOC_RPI4_CORTEX_A72
