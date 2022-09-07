@@ -10,11 +10,11 @@ CONFIG_CACHE_MANAGEMENT=y
 CONFIG_SERIAL=y
 
 # Enable console
-CONFIG_CONSOLE=y
-CONFIG_UART_CONSOLE=y
+CONFIG_CONSOLE=n
+CONFIG_UART_CONSOLE=n
 
 # enable PL011 as a debug console
-CONFIG_UART_PL011=y
+CONFIG_UART_PL011=n
 
 # to use remote, must be in Non-Secure world
 CONFIG_ARMV8_A_NS=y
