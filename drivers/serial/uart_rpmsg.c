@@ -23,6 +23,8 @@ struct uart_rpmsg_data {
 	/** Ring buffer for received bytes from rpmsg */
 	struct ring_buf rb;
 	uint8_t ring_buf_data[CONFIG_UART_RPMSG_RING_BUF_SIZE];
+	uint8_t line_buf_data[CONFIG_UART_RPMSG_LINE_BUF_SIZE];
+	size_t line_len;
 
 #if defined(CONFIG_UART_INTERRUPT_DRIVEN)
 	uart_irq_callback_user_data_t irq_cb;
@@ -39,7 +41,7 @@ static void uart_rpmsg_cb(struct uart_rpmsg_data *data)
 	if (data->irq_cb) {
 		/* use data->tx_busy to simulate the tx empty interrupt
 		 * uart_tx_enable will call uart_rpmsg_cb, and set tx_busy to 1
-		 * uart_tx_disable will set tx_buys to 0, so uart_tx_disable 
+		 * uart_tx_disable will set tx_buys to 0, so uart_tx_disable
 		 * must be called if nothing to send and the loop will end
 		 */
 		do {
@@ -102,6 +104,7 @@ static int uart_rpmsg_poll_in(const struct device *dev,
 static void uart_rpmsg_poll_out(const struct device *dev, unsigned char c)
 {
 	struct uart_rpmsg_data *uart_data = (struct uart_rpmsg_data *)dev->data;
+	int ret;
 
 	/* should wait until uart_rpmsg's endpoint is bound ?
 	 * if not bound, rpmsg_service_send will fail
@@ -113,7 +116,23 @@ static void uart_rpmsg_poll_out(const struct device *dev, unsigned char c)
 		k_msleep(10);
 	}
 
-	rpmsg_service_send(uart_data->ep_id, &c, sizeof(c));
+	if (uart_data->line_len < CONFIG_UART_RPMSG_LINE_BUF_SIZE) {
+		uart_data->line_buf_data[uart_data->line_len++] = c;
+		if (c != '\n') {
+			return;
+		}
+	}
+
+	ret = rpmsg_service_send(uart_data->ep_id, uart_data->line_buf_data,
+							uart_data->line_len);
+
+	if (ret < 0) {
+		LOG_ERR("Error uart_rpmsg poll out over rpmsg_service ret:%d", ret);
+	}
+
+	uart_data->line_len = 0;
+
+	uart_data->line_buf_data[uart_data->line_len++] = c;
 }
 
 #if defined(CONFIG_UART_INTERRUPT_DRIVEN)
@@ -253,6 +272,8 @@ int uart_rpmsg_init(const struct device *dev)
 	data->dev = dev;
 	data->ep_id = status;
 	ring_buf_init(&data->rb, CONFIG_UART_RPMSG_RING_BUF_SIZE, data->ring_buf_data);
+
+	data->line_len = 0;
 #if defined(CONFIG_UART_INTERRUPT_DRIVEN)
 
 	data->tx_busy = 0;

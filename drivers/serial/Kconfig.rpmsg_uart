@@ -21,4 +21,10 @@ config UART_RPMSG_RING_BUF_SIZE
 	help
 	  Set the size of ring buffer used for rpmsg uart receive
 
+config UART_RPMSG_LINE_BUF_SIZE
+	int "RPMSG UART poll line buf size"
+	default 32
+	help
+	  Set the size of line buffer used for rpmsg uart poll out
+
 endif # UART_RPMSG
