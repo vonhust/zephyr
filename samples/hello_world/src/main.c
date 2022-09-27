@@ -10,11 +10,5 @@ volatile unsigned int g_counter = 0;
 
 void main(void)
 {
-	debug_phase[3]=10;
 
-	while(1) {
-		k_msleep(1000);
-		g_counter++;
-		printk("Hello World! %d\n", g_counter);
-	}
 }

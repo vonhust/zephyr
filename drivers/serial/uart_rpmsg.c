@@ -12,6 +12,7 @@
 #include <zephyr/ipc/rpmsg_service.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/pm_cpu_ops.h>
 LOG_MODULE_REGISTER(uart_rpmsg, CONFIG_UART_LOG_LEVEL);
 
 
@@ -60,6 +61,12 @@ static int uart_rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 
 	if (rpmsg_service_endpoint_is_bound(uart_data->ep_id) == false) {
 		rpmsg_service_endpoint_bound(uart_data->ep_id);
+	}
+
+	/* receive "shutdown" message from primary core, shutdown zephyr */
+	unsigned char *buf = data;
+	if (strcmp(buf, "shutdown") == 0) {
+		pm_cpu_off();
 	}
 
 	/* put the received data into ring buf */
