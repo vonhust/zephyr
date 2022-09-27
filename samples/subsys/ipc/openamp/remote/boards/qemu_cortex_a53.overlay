@@ -9,17 +9,10 @@
 / {
 	chosen {
 		zephyr,sram = &sram1;
-		zephyr,console = &uart1;
-		zephyr,shell-uart = &uart1;
 	};
 
 };
 
 &uart0 {
 	status = "disabled";
-};
-
-&uart1 {
-	status = "okay";
-	current-speed = <115200>;
 };

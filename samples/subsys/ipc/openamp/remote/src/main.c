@@ -16,6 +16,7 @@
 
 #include <openamp/open_amp.h>
 #include <metal/device.h>
+#include <zephyr/drivers/pm_cpu_ops.h>
 
 #include "common.h"
 
@@ -110,6 +111,12 @@ static void platform_ipm_callback(const struct device *dev, void *context,
 int endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 		size_t len, uint32_t src, void *priv)
 {
+	/* receive "shutdown" message from primary core, shutdown zephyr */
+	unsigned char *buf = data;
+	if (strcmp(buf, "shutdown") == 0) {
+		pm_cpu_off();
+	}
+
 	received_data = *((unsigned int *) data);
 
 	k_sem_give(&data_rx_sem);
