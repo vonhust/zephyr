@@ -269,7 +269,8 @@ int uart_rpmsg_init(const struct device *dev)
 	struct uart_rpmsg_data *data = dev->data;
 	int status;
 
-	status = rpmsg_service_register_endpoint("uart", uart_rpmsg_endpoint_cb, data);
+	status = rpmsg_service_register_endpoint("uart", uart_rpmsg_endpoint_cb,
+									NULL, data);
 
 	if (status < 0) {
 		LOG_INF("RPMSG UART initialized error\n");
