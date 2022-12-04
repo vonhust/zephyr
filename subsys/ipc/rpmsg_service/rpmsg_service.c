@@ -32,6 +32,7 @@ static struct rpmsg_virtio_shm_pool shpool;
 static struct {
 	const char *name;
 	rpmsg_ept_cb cb;
+	rpmsg_ns_unbind_cb unbind_cb;
 	struct rpmsg_endpoint ep;
 	volatile bool bound;
 } endpoints[CONFIG_RPMSG_SERVICE_NUM_ENDPOINTS];
@@ -57,7 +58,7 @@ static void ns_bind_cb(struct rpmsg_device *rdev,
 						   RPMSG_ADDR_ANY,
 						   dest,
 						   endpoints[i].cb,
-						   rpmsg_service_unbind);
+						   endpoints[i].unbind_cb,);
 
 			if (err != 0) {
 				LOG_ERR("Creating remote endpoint %s"
@@ -129,7 +130,8 @@ static int rpmsg_service_init(void)
 	return 0;
 }
 
-int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb, void *priv)
+int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb,
+							rpmsg_ns_unbind_cb unbind_cb, void *priv)
 {
 	if (ep_crt_started) {
 		return -EINPROGRESS;
@@ -139,6 +141,7 @@ int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb, void *pri
 		if (!endpoints[i].name) {
 			endpoints[i].name = name;
 			endpoints[i].cb = cb;
+			endpoints[i].unbind_cb = unbind_cb ? unbind_cb : rpmsg_service_unbind;
 			endpoints[i].ep.priv = priv;
 			return i;
 		}
