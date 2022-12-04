@@ -32,6 +32,8 @@ extern "C" {
  *             for master and slave
  * @param cb Callback executed when data are available on given endpoint
  *
+ * @param unbind_cb Callback executed when given endpoint is unbound
+ *
  * @param priv endpoint private data, transferred to cb when cb is called
  *
  * @retval >=0 id of registered endpoint on success;
@@ -40,7 +42,8 @@ extern "C" {
  * @retval -ENOMEM when there is not enough slots to register the endpoint;
  * @retval <0 an other negative errno code, reported by rpmsg.
  */
-int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb, void *priv);
+int rpmsg_service_register_endpoint(const char *name, rpmsg_ept_cb cb,
+				rpmsg_ns_unbind_cb unbind_cb, void *priv);
 
 /**
  * @brief Send data using given IPC endpoint
