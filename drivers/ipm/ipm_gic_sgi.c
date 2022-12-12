@@ -32,11 +32,20 @@ static int gic_sgi_send(const struct device *d, int wait, uint32_t id,
 	/* use SGI x to send ipi */
 	const uint64_t mpidr = GET_MPIDR();
 	const struct ipm_gic_sgi_device_config *config = d->config;
-	/*
-	 * Send SGI to all cores except itself
-	 * Note: Assume only one Cluster now.
-	 */
-	gic_raise_sgi(config->intno, mpidr, SGIR_TGT_MASK & ~(1 << MPIDR_TO_CORE(mpidr)));
+
+	if (!IS_ENABLED(CONFIG_OPENAMP_SLAVE)) {
+		/*
+		 * Send SGI to all cores except itself, this is for test as host does not know
+		 * which core the client side is in
+		 * Note: Assume only one Cluster now.
+		 */
+		gic_raise_sgi(config->intno, mpidr, SGIR_TGT_MASK & ~(1 << MPIDR_TO_CORE(mpidr)));
+	} else {
+		/* Send SGI only to core 0 (master core) for client side to
+		 * avoid uncessary ipi interrupts
+		 */
+		gic_raise_sgi(config->intno, mpidr, 0x1);
+	}
 
 	return 0;
 }
