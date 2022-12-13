@@ -20,8 +20,8 @@
 
 	chosen {
 		zephyr,sram = &sram1;
-		zephyr,console = &uart_rpmsg;
-		zephyr,shell-uart = &uart_rpmsg;
+		zephyr,console = &uart_rpmsg0;
+		zephyr,shell-uart = &uart_rpmsg1;
 		zephyr,flash = &flash0;
 		/*
 		 * shared memory reserved for the inter-processor communication
@@ -35,6 +35,17 @@
 		label = "gic_sgi0";
 	};
 
+	uart_rpmsg0: ep0 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		ep-name = "console";
+	};
+
+	uart_rpmsg1: ep1 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		ep-name = "uart";
+	};
 
 	soc {
 
@@ -46,16 +57,6 @@
 		sram1: memory@7a000000 {
 			compatible = "mmio-sram";
 			reg = <0x0 0x7a000000 0x0 DT_SIZE_M(10)>;
-		};
-
-		uart_rpmsg: uart {
-			status = "okay";
-			compatible = "zephyr,rpmsg-uart";
-			label = "UART_RPMSG";
-		/* Dummy current-speed entry to comply with serial
-		 * DTS binding
-		 */
-			current-speed = <0>;
 		};
 
 		uart1: uart@9001000 {
