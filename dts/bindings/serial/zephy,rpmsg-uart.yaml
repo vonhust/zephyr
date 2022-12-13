@@ -5,4 +5,10 @@ description: RPMSG service based UART
 
 compatible: "zephyr,rpmsg-uart"
 
-include: uart-controller.yaml
+include: base.yaml
+
+properties:
+    ep-name:
+        type: string
+        required: true
+        description: the endpoint name of uart-rpmsg device
