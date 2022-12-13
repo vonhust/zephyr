@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT zephyr_rpmsg_uart
+
 #include <zephyr/device.h>
 #include <zephyr/init.h>
 #include <zephyr/kernel.h>
@@ -17,6 +19,7 @@ LOG_MODULE_REGISTER(uart_rpmsg, CONFIG_UART_LOG_LEVEL);
 
 struct uart_rpmsg_data {
 	const struct device *dev;
+	char *name;
 
 	int ep_id; /* endpoint id */
 
@@ -32,8 +35,6 @@ struct uart_rpmsg_data {
 	int tx_busy;
 #endif /* CONFIG_UART_INTERRUPT_DRIVEN */
 };
-
-static struct uart_rpmsg_data uart_data;
 
 #if defined(CONFIG_UART_INTERRUPT_DRIVEN)
 static void uart_rpmsg_cb(struct uart_rpmsg_data *data)
@@ -269,7 +270,7 @@ int uart_rpmsg_init(const struct device *dev)
 	struct uart_rpmsg_data *data = dev->data;
 	int status;
 
-	status = rpmsg_service_register_endpoint("uart", uart_rpmsg_endpoint_cb,
+	status = rpmsg_service_register_endpoint(data->name, uart_rpmsg_endpoint_cb,
 									NULL, data);
 
 	if (status < 0) {
@@ -293,6 +294,17 @@ int uart_rpmsg_init(const struct device *dev)
 	return 0;
 }
 
-DEVICE_DT_DEFINE(DT_NODELABEL(uart_rpmsg), uart_rpmsg_init, NULL, &uart_data,
-		NULL, POST_KERNEL, CONFIG_RPMSG_SERVICE_EP_REG_PRIORITY,
+#define RPMSG_DEV(idx) DT_NODELABEL(uart_rpmsg ## idx)
+
+#define UART_RPMSG_INIT(n)		\
+	static struct uart_rpmsg_data uart_data_##n = {	\
+		.name = DT_PROP(RPMSG_DEV(n), ep_name),	\
+	};											\
+												\
+	DEVICE_DT_DEFINE(RPMSG_DEV(n), uart_rpmsg_init, NULL, \
+		&uart_data_##n,	\
+		NULL, POST_KERNEL, \
+		CONFIG_RPMSG_SERVICE_EP_REG_PRIORITY, \
 		&uart_rpmsg_api);
+
+DT_INST_FOREACH_STATUS_OKAY(UART_RPMSG_INIT)
