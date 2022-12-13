@@ -46,7 +46,7 @@ endchoice
 
 config RPMSG_SERVICE_NUM_ENDPOINTS
 	int "Max number of registered endpoints"
-	default 2
+	default 5
 	help
 	  Maximal number of endpoints that can be registered for given
 	  RPMsg service.
