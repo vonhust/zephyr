@@ -214,5 +214,11 @@ int arch_icache_range(void *addr, size_t size, int op)
 
 int arch_icache_all(int op)
 {
-	return -ENOTSUP;
+	/* invalidate all instruction cache */
+	__asm__ volatile ("ic iallu" ::: "memory");
+
+	dsb();
+	isb();
+
+	return 0;
 }
