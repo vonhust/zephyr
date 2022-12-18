@@ -267,7 +267,13 @@ static ALWAYS_INLINE size_t arch_icache_line_size_get(void)
 
 static ALWAYS_INLINE int arch_icache_flush_all(void)
 {
-	return -ENOTSUP;
+	/* invalidate all instruction cache */
+	__asm__ volatile ("ic iallu" ::: "memory");
+
+	z_barrier_dsync_fence_full();
+	z_barrier_isync_fence_full();
+
+	return 0;
 }
 
 static ALWAYS_INLINE int arch_icache_invd_all(void)
