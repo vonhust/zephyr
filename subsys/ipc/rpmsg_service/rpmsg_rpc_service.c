@@ -11,6 +11,7 @@
 #include <zephyr/device.h>
 #include <zephyr/ipc/rpmsg_service.h>
 #include <zephyr/drivers/pm_cpu_ops.h>
+#include <zephyr/cache.h>
 #include <zephyr/logging/log.h>
 
 #define LOG_MODULE_NAME rpmsg_rpc_service
@@ -115,6 +116,14 @@ int rpmsg_rpc_send(struct rpmsg_rpc_instance *inst, uint32_t rpc_id, void *param
  */
 static int sys_service_power_off_cb(void *params, size_t len)
 {
+	/* before cpu_off, some clean ops need to be done:
+	 * - turn off tasks, device, etc.
+	 * - clear cache, memory etc.
+	 */
+	sys_cache_data_flush_all();
+	sys_cache_instr_flush_all();
+
+	/* from arm64 supporting psci, call pm_cpu_off to turn off */
 	pm_cpu_off();
 
 	return 0;
@@ -125,10 +134,8 @@ static struct rpmsg_rpc_service sys_service_table[] = {
 	{RPMSG_SYS_SERVICE_POWER_OFF, sys_service_power_off_cb}
 };
 
-static int rpmsg_sys_service_init(const struct device *dev)
+static int rpmsg_sys_service_init(void)
 {
-	(void)dev;
-
 	unsigned int n_services = sizeof(sys_service_table) / sizeof(struct rpmsg_rpc_service);
 
 	LOG_INF("number of services: %d\n", n_services);
