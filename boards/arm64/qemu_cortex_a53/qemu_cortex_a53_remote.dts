@@ -20,8 +20,9 @@
 
 	chosen {
 		zephyr,sram = &sram1;
+		/* uart0 is used for debug, which also may be used by Linux */
 		zephyr,console = &uart_rpmsg0;
-		zephyr,shell-uart = &uart_rpmsg1;
+		zephyr,shell-uart = &uart_rpmsg0;
 		zephyr,flash = &flash0;
 		/*
 		 * shared memory reserved for the inter-processor communication
@@ -38,13 +39,14 @@
 	uart_rpmsg0: ep0 {
 		status = "okay";
 		compatible = "zephyr,rpmsg-uart";
-		ep-name = "console";
+		/* the rpmsg-tty driver requires ep-name should be rpmsg-tty* */
+		ep-name = "rpmsg-tty";
 	};
 
 	uart_rpmsg1: ep1 {
 		status = "okay";
 		compatible = "zephyr,rpmsg-uart";
-		ep-name = "uart";
+		ep-name = "rpmsg-tty1";
 	};
 
 	soc {
@@ -59,16 +61,5 @@
 			reg = <0x0 0x7a000000 0x0 DT_SIZE_M(10)>;
 		};
 
-		uart1: uart@9001000 {
-			compatible = "arm,pl011";
-			reg = <0x00 0x9001000 0x00 0x1000>;
-			status = "disabled";
-			interrupts = <GIC_SPI 4 IRQ_TYPE_LEVEL 0>;
-			interrupt-names = "irq_1";
-			clocks = <&uartclk>;
-			label = "UART_1";
-		};
-
 	};
 };
-
