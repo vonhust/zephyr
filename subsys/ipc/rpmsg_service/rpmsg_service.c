@@ -20,7 +20,11 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_RPMSG_SERVICE_LOG_LEVEL);
 
 #define MASTER IS_ENABLED(CONFIG_RPMSG_SERVICE_MODE_MASTER)
 
+#if defined(CONFIG_OPENAMP_RSC_TABLE)
+static struct virtio_device *vdev;
+#else
 static struct virtio_device vdev;
+#endif
 static struct rpmsg_virtio_device rvdev;
 static struct metal_io_region *io;
 static bool ep_crt_started;
@@ -102,12 +106,15 @@ static int rpmsg_service_init(const struct device *dev)
 		LOG_ERR("RPMsg backend init failed with error %d", err);
 		return err;
 	}
-
+#if defined(CONFIG_OPENAMP_RSC_TABLE)
+	err = rpmsg_init_vdev(&rvdev, vdev, NULL, io, NULL);
+#else
 #if MASTER
 	rpmsg_virtio_init_shm_pool(&shpool, (void *)SHM_START_ADDR, SHM_SIZE);
 	err = rpmsg_init_vdev(&rvdev, &vdev, ns_bind_cb, io, &shpool);
 #else
 	err = rpmsg_init_vdev(&rvdev, &vdev, NULL, io, NULL);
+#endif
 #endif
 
 	if (err) {

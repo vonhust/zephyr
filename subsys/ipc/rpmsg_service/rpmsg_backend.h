@@ -13,6 +13,12 @@
 extern "C" {
 #endif
 
+#if defined(CONFIG_OPENAMP_RSC_TABLE)
+#define SHM_DEVICE_NAME	"shm"
+#define SHM_NODE		DT_CHOSEN(zephyr_ipc_shm)
+#define SHM_START_ADDR	DT_REG_ADDR(SHM_NODE)
+#define SHM_SIZE		DT_REG_SIZE(SHM_NODE)
+#else
 #define VDEV_START_ADDR		DT_REG_ADDR(DT_CHOSEN(zephyr_ipc_shm))
 #define VDEV_SIZE		DT_REG_SIZE(DT_CHOSEN(zephyr_ipc_shm))
 
@@ -22,6 +28,7 @@ extern "C" {
 #define SHM_START_ADDR		(VDEV_START_ADDR + VDEV_STATUS_SIZE)
 #define SHM_SIZE		    (VDEV_SIZE - VDEV_STATUS_SIZE)
 #define SHM_DEVICE_NAME		"sramx.shm"
+#endif
 
 /*
  * @brief Initialize RPMsg backend
@@ -35,7 +42,11 @@ extern "C" {
  * @retval 0 Initialization successful
  * @retval <0 Initialization error reported by OpenAMP
  */
+#if defined(CONFIG_OPENAMP_RSC_TABLE)
+int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev);
+#else
 int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device *vdev);
+#endif
 
 #ifdef __cplusplus
 }
