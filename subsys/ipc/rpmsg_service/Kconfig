@@ -23,7 +23,6 @@ config RPMSG_SERVICE_DUAL_IPM_SUPPORT
 
 menuconfig RPMSG_SERVICE
 	bool "RPMsg service for multiple users"
-	select IPM
 	select OPENAMP
 	help
 	  Enables support for a service that can be shared by multiple

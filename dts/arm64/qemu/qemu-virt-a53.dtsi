@@ -7,8 +7,8 @@
 /*
  * Derived from DTS extracted with:
  *
- *   qemu-system-aarch64 -machine virt -cpu cortex-a53 -nographic
- *         -machine dumpdtb=virt.dtb
+ *   qemu-system-aarch64 -machine virt,gic-version=host,accel=kvm
+ *         -cpu cortex-a53 -nographic -machine dumpdtb=virt.dtb
  *
  *   dtc -I dtb -O dts virt.dtb
  */
@@ -28,13 +28,13 @@
 
 		cpu@0 {
 			device_type = "cpu";
-			compatible = "arm,cortex-a53";
+			compatible = "arm,cortex-virt";
 			reg = <0>;
 		};
 
 		cpu@1 {
 			device_type = "cpu";
-			compatible = "arm,cortex-a53";
+			compatible = "arm,cortex-virt";
 			reg = <1>;
 		};
 	};
