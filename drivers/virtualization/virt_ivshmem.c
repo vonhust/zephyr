@@ -253,7 +253,7 @@ static bool ivshmem_configure(const struct device *dev)
 
 	z_phys_map((uint8_t **)&data->shmem,
 		   shmem_phys_addr, data->size,
-		   K_MEM_CACHE_WB | K_MEM_PERM_RW | K_MEM_PERM_USER);
+		   K_MEM_CACHE_WB | K_MEM_PERM_RW | K_MEM_PERM_USER | K_MEM_DIRECT_MAP);
 
 	if (msi_x_bar_present) {
 		if (!ivshmem_configure_msi_x_interrupts(dev)) {

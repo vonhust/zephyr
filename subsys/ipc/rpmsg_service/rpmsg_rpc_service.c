@@ -124,7 +124,7 @@ static int sys_service_power_off_cb(void *params, size_t len)
 	sys_cache_instr_flush_all();
 
 	/* from arm64 supporting psci, call pm_cpu_off to turn off */
-	pm_cpu_off();
+	//pm_cpu_off();
 
 	return 0;
 }
