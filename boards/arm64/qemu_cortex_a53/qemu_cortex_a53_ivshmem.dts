@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2019 Carlo Caione <ccaione@baylibre.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+/dts-v1/;
+#include <arm64/qemu/qemu-virt-a53.dtsi>
+#include <zephyr/dt-bindings/pcie/pcie.h>
+
+/ {
+	model = "QEMU Cortex-A53";
+	compatible = "qemu,arm-cortex-a53";
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "hvc";
+		label = "PSCI";
+	};
+
+	chosen {
+		zephyr,sram = &sram1;
+		/* uart0 is used for debug, which also may be used by Linux */
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart_rpmsg0;
+		zephyr,flash = &flash0;
+		zephyr,pcie-controller = &pcie;
+	};
+
+	uart_rpmsg0: ep0 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		/* the rpmsg-tty driver requires ep-name should be rpmsg-tty* */
+		ep-name = "rpmsg-tty";
+	};
+
+	uart_rpmsg1: ep1 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		ep-name = "rpmsg-tty1";
+	};
+
+	soc {
+
+		sram1: memory@7a000000 {
+			compatible = "mmio-sram";
+			reg = <0x0 0x7a000000 0x0 DT_SIZE_M(10)>;
+		};
+
+		pcie: pcie@8e00000 {
+			compatible = "pci-host-ecam-generic";
+			device_type = "pci";
+			reg = <0x00 0x08e00000 0x00 0x100000>;
+			#size-cells = <0x02>;
+			#address-cells = <0x03>;
+			ranges = <0x02000000 0x00 0x10000000 0x0 0x10000000 0x00 0x10000>;
+			#interrupt-cells = <0x01>;
+			interrupt-map-mask = <0x00 0x00 0x00 0x07>;
+			interrupt-map = <
+				0x00 0x00 0x00 1 &gic 0 0 GIC_SPI 108 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 2 &gic 0 0 GIC_SPI 109 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 3 &gic 0 0 GIC_SPI 110 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 4 &gic 0 0 GIC_SPI 111 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+			bus-range = <0x00 0x00>;
+		};
+
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&pcie {
+	ivshmem0: ivshmem@0 {
+		compatible = "qemu,ivshmem";
+		ivshmem-v2;
+		vendor-id = <0x110A>;           /* Siemens */
+		device-id = <0x4106>;           /* IVSHMEM */
+		class-rev = <0xFF400100>;       /* PCI_CLASS_OTHERS | IVSHMEM_PROTO_RPMSG */
+		class-rev-mask = <0xFFFFFF00>;  /* PCI_CLASS_MASK | IVSHMEM_PROTO_MASK */
+		interrupt-parent = <&pcie>;
+		interrupts = <1 2 3 4>;
+		reg = <0x00 0x00 0x00 0x00 0x01>;
+		status = "okay";
+	};
+};

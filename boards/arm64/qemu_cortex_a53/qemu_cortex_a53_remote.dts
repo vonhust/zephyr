@@ -21,7 +21,7 @@
 	chosen {
 		zephyr,sram = &sram1;
 		/* uart0 is used for debug, which also may be used by Linux */
-		zephyr,console = &uart_rpmsg0;
+		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart_rpmsg0;
 		zephyr,flash = &flash0;
 		/*
@@ -62,4 +62,9 @@
 		};
 
 	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
 };

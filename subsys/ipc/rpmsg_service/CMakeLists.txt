@@ -6,7 +6,12 @@ if(CONFIG_OPENAMP_RSC_TABLE)
 # and rpmsg buffers. The METAL_MAX_DEVICE_REGIONS has to be redefined to add a
 # second region for the resource table.
 zephyr_compile_definitions(METAL_MAX_DEVICE_REGIONS=2)
+if(CONFIG_IVSHMEM_DOORBELL)
+# if IVSHMEM is enabled, use IVSHMEM specific implementation
+zephyr_sources(rpmsg_backend_rsc_table_ivshmem.c)
+else()
 zephyr_sources(rpmsg_backend_rsc_table.c)
+endif()
 else()
 zephyr_sources(rpmsg_backend.c)
 endif()
