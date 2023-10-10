@@ -12,6 +12,9 @@
 #include <zephyr/drivers/ipm.h>
 #include <zephyr/drivers/interrupt_controller/gic.h>
 
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(ipm_gic_sgi, CONFIG_IPM_LOG_LEVEL);
+
 
 /* Device config structure */
 struct ipm_gic_sgi_device_config {
@@ -33,6 +36,8 @@ static int gic_sgi_send(const struct device *d, int wait, uint32_t id,
 	const uint64_t mpidr = GET_MPIDR();
 	const struct ipm_gic_sgi_device_config *config = d->config;
 
+	LOG_DBG("gic_sig_send:id:%x, data:%p, size:%d", id, data, size);
+
 	if (!IS_ENABLED(CONFIG_OPENAMP_SLAVE)) {
 		/*
 		 * Send SGI to all cores except itself, this is for test as host does not know
@@ -42,7 +47,7 @@ static int gic_sgi_send(const struct device *d, int wait, uint32_t id,
 		gic_raise_sgi(config->intno, mpidr, SGIR_TGT_MASK & ~(1 << MPIDR_TO_CORE(mpidr)));
 	} else {
 		/* Send SGI only to core 0 (master core) for client side to
-		 * avoid uncessary ipi interrupts
+		 * avoid unnecessary ipi interrupts
 		 */
 		gic_raise_sgi(config->intno, mpidr, 0x1);
 	}
@@ -140,4 +145,5 @@ static void gic_sgi_irq_config_func_0(const struct device *d)
 			DEVICE_DT_INST_GET(0),
 			0);
 	irq_enable(CONFIG_IPM_GIC_SGI_INTNO);
+	LOG_INF("gic sgi int config");
 }

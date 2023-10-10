@@ -9,6 +9,8 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/ipm.h>
 #include <zephyr/device.h>
+#include <zephyr/drivers/pm_cpu_ops.h>
+#include <zephyr/drivers/cache.h>
 #include <zephyr/logging/log.h>
 
 #include <openamp/open_amp.h>
@@ -29,6 +31,12 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_RPMSG_SERVICE_LOG_LEVEL);
 #error "resource table implementation is only for device"
 #endif
 
+
+/* use resource tables's  reserved[0] to carry some extra information
+ *  the following IDs come from PSCI definition
+ */
+#define CPU_OFF_FUNCID		0x84000002
+#define CPU_SUSPEND_FUNCID 	0xc4000001
 
 #define IPM_WORK_QUEUE_STACK_SIZE CONFIG_RPMSG_SERVICE_WORK_QUEUE_STACK_SIZE
 #define IPM_WORK_QUEUE_PRIORITY   K_HIGHEST_APPLICATION_THREAD_PRIO
@@ -62,7 +70,8 @@ static struct metal_device shm_device = {
 };
 
 static struct virtio_device *cur_vdev;
-static struct k_work ipm_work;
+static struct k_work ipm_work_vring_rx;
+static struct k_work ipm_work_cpu_off;
 
 static int virtio_notify(void *priv, uint32_t id)
 {
@@ -79,27 +88,56 @@ static int virtio_notify(void *priv, uint32_t id)
 	return status;
 }
 
-
-static void ipm_callback_process(struct k_work *work)
+static void ipm_work_handle_vring_rx(struct k_work *work)
 {
 	/* as remote device, VRING1_ID is for RX (from host to devive)*/
 	rproc_virtio_notified(cur_vdev, VRING1_ID);
+}
+
+static void ipm_work_handle_cpu_off(struct k_work *work)
+{
+	LOG_DBG("zephyr: cpu off");
+		/* before cpu_off, some clean ops need to be done:
+		 * - turn off tasks, device, etc.
+		 * - clear cache, memory etc.
+		 */
+	cache_data_all(K_CACHE_WB_INVD);
+	cache_instr_all(K_CACHE_INVD);
+
+	/* \todo: extra work to notify other tasks that cpu is going to
+		turn off
+	*/
+
+	/* from arm64 supporting psci, call pm_cpu_off to turn off */
+	pm_cpu_off();
 }
 
 static void ipm_callback(const struct device *dev,
 						void *context, uint32_t id,
 						volatile void *data)
 {
+	struct fw_resource_table *rsc;
+	rsc = (struct fw_resource_table *)context;
+
 	(void)dev;
 
 	LOG_DBG("Got callback of id %u", id);
-	/* TODO: Separate workqueue is needed only
-	 * for serialization master (app core)
-	 *
-	 * Use sysworkq to optimize memory footprint
-	 * for serialization slave (net core)
-	 */
-	k_work_submit_to_queue(&ipm_work_q, &ipm_work);
+
+	/* use resource table's reserved bits for extra work */
+	if (rsc->reserved[0] != 0) {
+		LOG_DBG("rsc reserved[0]:%x", rsc->reserved[0]);
+
+		if (rsc->reserved[0] == CPU_OFF_FUNCID) {
+			/* cpu off work */
+			k_work_submit_to_queue(&ipm_work_q, &ipm_work_cpu_off);
+		}
+
+		/* clear reserved[0] as the extra work is done*/
+		rsc->reserved[0] = 0;
+	} else {
+		/* normal work */
+		k_work_submit_to_queue(&ipm_work_q, &ipm_work_vring_rx);
+	}
 }
 
 struct virtio_device *
@@ -152,39 +190,12 @@ failed:
 int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 {
 	void *rsc_table;
-	struct fw_resource_table *rsc;
 	struct metal_io_region *rsc_io;
 	int rsc_size;
 	int32_t                  err;
 	struct metal_init_params metal_params = METAL_INIT_DEFAULTS;
 	struct metal_device     *device;
 	
-
-
-	/* IPM setup */
-
-	/* Start IPM workqueue */
-	k_work_queue_start(&ipm_work_q, ipm_stack_area,
-			   K_THREAD_STACK_SIZEOF(ipm_stack_area),
-			   IPM_WORK_QUEUE_PRIORITY, NULL);
-	k_thread_name_set(&ipm_work_q.thread, "ipm_work_q");
-
-	/* Setup IPM workqueue item */
-	k_work_init(&ipm_work, ipm_callback_process);
-
-	if (!device_is_ready(ipm_handle)) {
-		LOG_ERR("IPM device is not ready");
-		return -ENODEV;
-	}
-
-	ipm_register_callback(ipm_handle, ipm_callback, NULL);
-
-	err = ipm_set_enabled(ipm_handle, 1);
-	if (err != 0) {
-		LOG_ERR("Could not enable IPM interrupts and callbacks");
-		return err;
-	}
-
 	/* Libmetal setup */
 	err = metal_init(&metal_params);
 	if (err) {
@@ -215,14 +226,37 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 	}
 
 	rsc_table_get(&rsc_table, &rsc_size);
-	rsc = (struct fw_resource_table *)rsc_table;
-
 	metal_io_init(&device->regions[1], rsc_table,
 		      (metal_phys_addr_t *)rsc_table, rsc_size, -1, 0, NULL);
 	rsc_io = metal_device_io_region(device, 1);
 	if (!rsc_io) {
 		LOG_ERR("Failed to get rsc_io region");
 		return -1;
+	}
+
+	/* IPM setup */
+
+	/* Start IPM workqueue */
+	k_work_queue_start(&ipm_work_q, ipm_stack_area,
+			   K_THREAD_STACK_SIZEOF(ipm_stack_area),
+			   IPM_WORK_QUEUE_PRIORITY, NULL);
+	k_thread_name_set(&ipm_work_q.thread, "ipm_work_q");
+
+	/* Setup IPM workqueue item */
+	k_work_init(&ipm_work_vring_rx, ipm_work_handle_vring_rx);
+	k_work_init(&ipm_work_cpu_off, ipm_work_handle_cpu_off);
+
+	if (!device_is_ready(ipm_handle)) {
+		LOG_ERR("IPM device is not ready");
+		return -ENODEV;
+	}
+
+	ipm_register_callback(ipm_handle, ipm_callback, rsc_table);
+
+	err = ipm_set_enabled(ipm_handle, 1);
+	if (err != 0) {
+		LOG_ERR("Could not enable IPM interrupts and callbacks");
+		return err;
 	}
 
 	/* virtio device setup */
