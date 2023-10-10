@@ -74,7 +74,7 @@ static int uart_rpmsg_endpoint_cb(struct rpmsg_endpoint *ept, void *data,
 	wrote = ring_buf_put(&uart_data->rb, data, len);
 
 	if (wrote < len) {
-		LOG_INF("ring buf is full, data overrun\n");
+		LOG_INF("ring buf is full, data overrun");
 		/* ring buf is full, disable rx? */
 	}
 
@@ -274,7 +274,7 @@ int uart_rpmsg_init(const struct device *dev)
 									NULL, data);
 
 	if (status < 0) {
-		LOG_INF("RPMSG UART initialized error\n");
+		LOG_INF("RPMSG UART initialized error");
 		return status;
 	}
 
@@ -289,7 +289,7 @@ int uart_rpmsg_init(const struct device *dev)
 
 #endif
 
-	LOG_INF("IPC UART initialized successfully\n");
+	LOG_INF("IPC UART initialized successfully");
 
 	return 0;
 }
