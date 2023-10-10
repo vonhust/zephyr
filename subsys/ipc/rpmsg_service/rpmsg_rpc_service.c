@@ -56,10 +56,10 @@ static int endpoint_cb_rpmsg_rpc(struct rpmsg_endpoint *ept, void *data,
 
 	if (service) {
 		if (service->cb_function(data, len) < 0) {
-			LOG_ERR("call back %d error\n", id);
+			LOG_ERR("call back %d error", id);
 		}
 	} else {
-		LOG_ERR("no service found\n");
+		LOG_ERR("no service found");
 	}
 
 	return 0;
@@ -140,7 +140,7 @@ static int rpmsg_sys_service_init(const struct device *dev)
 
 	unsigned int n_services = sizeof(sys_service_table) / sizeof(struct rpmsg_rpc_service);
 
-	LOG_INF("number of services: %d\n", n_services);
+	LOG_INF("number of services: %d", n_services);
 
 	rpmsg_rpc_service_init(&sys_service_inst, sys_service_table, n_services);
 
