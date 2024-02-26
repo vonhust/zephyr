@@ -48,6 +48,8 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device *vdev);
 #endif
 
+extern struct rpmsg_virtio_device rvdev;
+
 #ifdef __cplusplus
 }
 #endif

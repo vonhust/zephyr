@@ -15,6 +15,7 @@
 
 #include <openamp/open_amp.h>
 #include <metal/device.h>
+#include <metal/cache.h>
 #include <resource_table.h>
 
 #define LOG_MODULE_NAME rpmsg_backend
@@ -37,6 +38,8 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_RPMSG_SERVICE_LOG_LEVEL);
  */
 #define CPU_OFF_FUNCID		0x84000002
 #define CPU_SUSPEND_FUNCID 	0xc4000001
+#define CPU_ON_FUNCID		0xC4000003
+#define SYSTEM_RESET		0x84000009
 
 #define IPM_WORK_QUEUE_STACK_SIZE CONFIG_RPMSG_SERVICE_WORK_QUEUE_STACK_SIZE
 #define IPM_WORK_QUEUE_PRIORITY   K_HIGHEST_APPLICATION_THREAD_PRIO
@@ -112,31 +115,72 @@ static void ipm_work_handle_cpu_off(struct k_work *work)
 	pm_cpu_off();
 }
 
+static void reset_vq(void)
+{
+	if (rvdev.svq != NULL) {
+		/*
+		 * For svq:
+		 * vq_free_cnt: Set to vq_nentries, all descriptors in the svq are available.
+		 * vq_queued_cnt: Set to 0, no descriptors waiting to be processed in the svq.
+		 * vq_desc_head_idx: Set to 0, the next available descriptor is at the beginning
+		 *                   of the descriptor table.
+		 * vq_available_idx: Set to 0, No descriptors have been added to the available ring.
+		 * vq_used_cons_idx: No descriptors have been added to the used ring.
+		 * vq_ring.avail->idx and vq_ring.used->idx will be set at host.
+		 */
+		rvdev.svq->vq_free_cnt = rvdev.svq->vq_nentries;
+		rvdev.svq->vq_queued_cnt = 0;
+		rvdev.svq->vq_desc_head_idx = 0;
+		rvdev.svq->vq_available_idx = 0;
+		rvdev.svq->vq_used_cons_idx = 0;
+	}
+
+	if (rvdev.rvq != NULL) {
+		/*
+		 * For rvq:
+		 * Because host resets its tx vq, on the remote side,
+		 * it also needs to reset the rx rq.
+		 */
+		rvdev.rvq->vq_available_idx = 0;
+		rvdev.rvq->vq_used_cons_idx = 0;
+		rvdev.rvq->vq_ring.used->idx = 0;
+		rvdev.rvq->vq_ring.avail->idx = 0;
+		metal_cache_flush(&(rvdev.rvq->vq_ring.used->idx),
+				  sizeof(rvdev.rvq->vq_ring.used->idx));
+		metal_cache_flush(&(rvdev.rvq->vq_ring.avail->idx),
+				  sizeof(rvdev.rvq->vq_ring.avail->idx));
+	}
+}
+
 static void ipm_callback(const struct device *dev,
-						void *context, uint32_t id,
-						volatile void *data)
+			 void *context, uint32_t id,
+			 volatile void *data)
 {
 	struct fw_resource_table *rsc;
+	uint32_t status;
+
 	rsc = (struct fw_resource_table *)context;
+	status = rsc->reserved[0];
 
 	(void)dev;
 
 	LOG_DBG("Got callback of id %u", id);
 
 	/* use resource table's reserved bits for extra work */
-	if (rsc->reserved[0] != 0) {
-		LOG_DBG("rsc reserved[0]:%x", rsc->reserved[0]);
+	if (status == 0)
+		return;
 
-		if (rsc->reserved[0] == CPU_OFF_FUNCID) {
-			/* cpu off work */
-			k_work_submit_to_queue(&ipm_work_q, &ipm_work_cpu_off);
-		}
+	LOG_DBG("rsc reserved[0]:%x", status);
 
-		/* clear reserved[0] as the extra work is done*/
-		rsc->reserved[0] = 0;
-	} else {
+	if (status == CPU_OFF_FUNCID) {
+		/* cpu off work */
+		k_work_submit_to_queue(&ipm_work_q, &ipm_work_cpu_off);
+	} else if (status == CPU_ON_FUNCID) {
 		/* normal work */
 		k_work_submit_to_queue(&ipm_work_q, &ipm_work_vring_rx);
+	} else if (status == SYSTEM_RESET) {
+		/* attach work: reset virtqueue */
+		reset_vq();
 	}
 }
 
@@ -195,7 +239,7 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 	int32_t                  err;
 	struct metal_init_params metal_params = METAL_INIT_DEFAULTS;
 	struct metal_device     *device;
-	
+
 	/* Libmetal setup */
 	err = metal_init(&metal_params);
 	if (err) {
