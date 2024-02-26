@@ -25,7 +25,7 @@ static struct virtio_device *vdev;
 #else
 static struct virtio_device vdev;
 #endif
-static struct rpmsg_virtio_device rvdev;
+struct rpmsg_virtio_device rvdev;
 static struct metal_io_region *io;
 static bool ep_crt_started;
 
@@ -93,7 +93,7 @@ static void ns_bind_cb(struct rpmsg_device *rdev,
 
 #endif
 
-static int rpmsg_service_init(const struct device *dev)
+int rpmsg_service_init(const struct device *dev)
 {
 	int32_t err;
 
