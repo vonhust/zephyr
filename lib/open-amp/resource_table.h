@@ -7,6 +7,7 @@
 #ifndef RESOURCE_TABLE_H__
 #define RESOURCE_TABLE_H__
 
+#include <openamp/rpmsg.h>
 #include <openamp/remoteproc.h>
 #include <openamp/virtio.h>
 
@@ -28,9 +29,12 @@ extern "C" {
 #define VRING_BUFF_ADDRESS      -1  /* allocated by Master processor */
 #define VRING_ALIGNMENT         16  /* fixed to match with Linux constraint */
 
+#define RSC_VENDOR_EPT_TABLE    128 /* List of bound endpoints */
+
 #endif
 
 enum rsc_table_entries {
+	RSC_TABLE_EPT_TABLE_ENTRY,
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 	RSC_TABLE_VDEV_ENTRY,
 #endif
@@ -40,10 +44,27 @@ enum rsc_table_entries {
 	RSC_TABLE_NUM_ENTRY
 };
 
+METAL_PACKED_BEGIN
+struct ept_info {
+	char name[RPMSG_NAME_SIZE];
+	uint32_t addr;
+	uint32_t dest_addr;
+} METAL_PACKED_END;
+
+#define MAX_NUM_OF_EPTS 64
+
+METAL_PACKED_BEGIN
+struct fw_rsc_ept {
+	uint32_t type;
+	uint32_t num_of_epts;
+	struct ept_info endpoints[MAX_NUM_OF_EPTS];
+} METAL_PACKED_END;
+
 struct fw_resource_table {
 	struct resource_table hdr;
 	uint32_t offset[RSC_TABLE_NUM_ENTRY];
 
+	struct fw_rsc_ept ept_table;
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 	struct fw_rsc_vdev vdev;
 	struct fw_rsc_vdev_vring vring0;
