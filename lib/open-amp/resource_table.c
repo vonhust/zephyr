@@ -37,7 +37,7 @@ static struct fw_resource_table __resource resource_table = {
 	.ver = 1,
 	.num = RSC_TABLE_NUM_ENTRY,
 	.offset = {
-
+		offsetof(struct fw_resource_table, ept_table),
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 		offsetof(struct fw_resource_table, vdev),
 #endif
@@ -47,10 +47,15 @@ static struct fw_resource_table __resource resource_table = {
 #endif
 	},
 
+	.ept_table = {
+		.type = RSC_VENDOR_EPT_TABLE,
+		.num_of_epts = 0,
+	},
+
 #if (CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF > 0)
 	/* Virtio device entry */
 	.vdev = {
-		RSC_VDEV, VIRTIO_ID_RPMSG, 0, RPMSG_IPU_C0_FEATURES, 0, 0, 0,
+		RSC_VDEV, VIRTIO_ID_RPMSG, 2, RPMSG_IPU_C0_FEATURES, 0, 0, 0,
 		VRING_COUNT, {0, 0},
 	},
 
