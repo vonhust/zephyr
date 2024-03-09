@@ -50,10 +50,9 @@
 	};
 
 	soc {
-
 		ipc_shm0: memory@70000000 {
 			compatible = "mmio-sram";
-			reg = <0 0x70000000 0 0x30000>;
+			reg = <0 0x70000000 0 0x100000>;
 		};
 
 		sram1: memory@7a000000 {
