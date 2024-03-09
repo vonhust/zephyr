@@ -160,6 +160,7 @@ static void ipm_callback(const struct device *dev,
 	uint32_t status;
 
 	rsc = (struct fw_resource_table *)context;
+	metal_cache_invalidate(rsc->reserved, sizeof(rsc->reserved));
 	status = rsc->reserved[0];
 
 	(void)dev;
@@ -175,12 +176,15 @@ static void ipm_callback(const struct device *dev,
 	if (status == CPU_OFF_FUNCID) {
 		/* cpu off work */
 		k_work_submit_to_queue(&ipm_work_q, &ipm_work_cpu_off);
-	} else if (status == CPU_ON_FUNCID) {
+	} else if (status == CPU_ON_FUNCID || status == 0) {
 		/* normal work */
 		k_work_submit_to_queue(&ipm_work_q, &ipm_work_vring_rx);
 	} else if (status == SYSTEM_RESET) {
 		/* attach work: reset virtqueue */
 		reset_vq();
+		/* clear reserved[0] after the reset work is completed */
+		rsc->reserved[0] = 0;
+		metal_cache_flush(rsc->reserved, sizeof(rsc->reserved));
 	}
 }
 
