@@ -101,8 +101,8 @@ static void ipm_work_handle_cpu_off(struct k_work *work)
 		 * - turn off tasks, device, etc.
 		 * - clear cache, memory etc.
 		 */
-	cache_data_all(K_CACHE_WB_INVD);
-	cache_instr_all(K_CACHE_INVD);
+	cache_data_invd_all();
+	cache_instr_invd_all();
 
 	/* \todo: extra work to notify other tasks that cpu is going to
 		turn off
