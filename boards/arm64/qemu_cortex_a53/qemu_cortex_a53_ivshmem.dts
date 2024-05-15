@@ -16,7 +16,6 @@
 	psci {
 		compatible = "arm,psci-0.2";
 		method = "hvc";
-		label = "PSCI";
 	};
 
 	chosen {
@@ -32,7 +31,7 @@
 		status = "okay";
 		compatible = "zephyr,rpmsg-uart";
 		/* the rpmsg-tty driver requires ep-name should be rpmsg-tty* */
-		ep-name = "rpmsg-tty";
+		ep-name = "rpmsg-tty0";
 	};
 
 	uart_rpmsg1: ep1 {
