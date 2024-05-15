@@ -183,7 +183,7 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 			(k_thread_entry_t)ivshmem_event_poll_thread_entry,
 			NULL, NULL, NULL, IVSHMEM_EVENT_POLL_PRIO, 0, K_NO_WAIT);
 
-	/* get ivshmem info, shmem is already mapped in virt_ivshmem. c*/
+	/* get ivshmem info, shmem is already mapped in virt_ivshmem.c */
 	shmem_size = ivshmem_get_rw_mem_section(ivshmem_dev, &shmem_phy_addr);
 
 	LOG_DBG("ivshmem addr is 0x%lx, size is 0x%lx", shmem_phy_addr, shmem_size);
@@ -207,11 +207,11 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 		return err;
 	}
 
-	/* part1 resource table 
+	/* part 1: resource table
 	 * here resource table will be parsed by the other side and
 	 * copied to the 1st page of ivshmem read&write section. 
 	 * we call rst_table_get to get the correct size and init meta
-	 * io region 
+	 * io region
 	 *
 	 */
 	rsc_table_get((void **)&rsc_table, &rsc_size);
