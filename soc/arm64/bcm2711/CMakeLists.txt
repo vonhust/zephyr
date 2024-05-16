@@ -2,3 +2,6 @@
 zephyr_sources_ifdef(CONFIG_ARM_MMU mmu_regions.c)
 
 set(SOC_LINKER_SCRIPT ${ZEPHYR_BASE}/include/zephyr/arch/arm64/scripts/linker.ld CACHE INTERNAL "")
+if(CONFIG_OPENAMP_RSC_TABLE)
+zephyr_linker_sources(DATA_SECTIONS rsc_table_linker.ld)
+endif()

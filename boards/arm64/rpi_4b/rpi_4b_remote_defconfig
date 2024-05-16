@@ -1,0 +1,56 @@
+# Copyright (c) 2024 openEuler Embedded
+# SPDX-License-Identifier: Apache-2.0
+
+# Platform Configuration
+CONFIG_SOC_BCM2711=y
+CONFIG_BOARD_RPI_4B=y
+CONFIG_ARM64_VA_BITS_36=y
+CONFIG_ARM64_PA_BITS_36=y
+
+# Zephyr Kernel Configuration
+CONFIG_XIP=n
+
+# Cache management
+CONFIG_CACHE_MANAGEMENT=y
+
+# Serial Drivers
+CONFIG_SERIAL=y
+CONFIG_UART_INTERRUPT_DRIVEN=y
+
+# Enable Console
+CONFIG_CONSOLE=y
+# no early console, because uart_rpmsg is used
+CONFIG_BOOT_BANNER=n
+CONFIG_EARLY_CONSOLE=n
+CONFIG_UART_CONSOLE=y
+CONFIG_PRINTK=y
+
+# Timer Drivers
+CONFIG_TIMER_READS_ITS_FREQUENCY_AT_RUNTIME=y
+
+
+CONFIG_ARMV8_A_NS=y
+
+# Enable RPMSG based serial port
+CONFIG_UART_RPMSG=y
+CONFIG_UART_INTERRUPT_DRIVEN=y
+
+# support psci ops
+CONFIG_PM_CPU_OPS=y
+CONFIG_OPENAMP=y
+CONFIG_IPM=y
+CONFIG_RPMSG_SERVICE_MODE_REMOTE=y
+CONFIG_OPENAMP_MASTER=n
+CONFIG_OPENAMP_RSC_TABLE_NUM_RPMSG_BUFF=8
+CONFIG_OPENAMP_RSC_TABLE=y
+CONFIG_HEAP_MEM_POOL_SIZE=4096
+# shell must be initialized after uart_rpmsg
+CONFIG_SHELL_BACKEND_SERIAL_INIT_PRIORITY=60
+# the tx ring buffer size is the same of bufffer of rpmsg_virtio buffer
+CONFIG_SHELL_BACKEND_SERIAL_TX_RING_BUFFER_SIZE=512
+
+CONFIG_LOG=y
+CONFIG_LOG_BACKEND_UART=y
+CONFIG_LOG_MODE_IMMEDIATE=y
+# don't use shell log backend, as shell is on rpmsg-tty
+CONFIG_SHELL_LOG_BACKEND=n

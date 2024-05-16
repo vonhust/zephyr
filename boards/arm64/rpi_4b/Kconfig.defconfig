@@ -4,3 +4,10 @@
 config BOARD
 	default "Raspberry Pi 4 Model B"
 	depends on BOARD_RPI_4B
+
+if IPM
+
+config IPM_GIC_SGI
+	default y
+
+endif # IPM

@@ -1,0 +1,70 @@
+/*
+ * Copyright 2024 openEuler Embedded
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <broadcom/bcm2711.dtsi>
+
+/ {
+	model = "Raspberry Pi 4 Model B";
+	compatible = "raspberrypi,4-model-b", "brcm,bcm2838";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
+
+	chosen {
+		zephyr,console = &uart1;
+		zephyr,shell-uart = &uart_rpmsg0;
+		zephyr,sram = &sram1;
+
+		/*
+		 * shared memory reserved for the inter-processor communication
+		 */
+		 zephyr,ipc_shm = &ipc_shm0;
+		 zephyr,ipc = &ipm_gic_sgi0;
+	};
+
+	ipm_gic_sgi0: ipm{
+		compatible = "arm,gic-sgi";
+		label = "gic_sgi0";
+	};
+
+	uart_rpmsg0: ep0 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		/* the rpmsg-tty driver requires ep-name should be rpmsg-tty* */
+		ep-name = "rpmsg-tty";
+	};
+
+	uart_rpmsg1: ep1 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		ep-name = "rpmsg-tty1";
+	};
+
+	soc {
+
+		ipc_shm0: memory@70000000 {
+			compatible = "mmio-sram";
+			reg = <0x70000000 0x30000>;
+		};
+
+		sram1: memory@7a000000 {
+			compatible = "mmio-sram";
+			reg = <0x7a000000 DT_SIZE_M(10)>;
+		};
+
+	};
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
