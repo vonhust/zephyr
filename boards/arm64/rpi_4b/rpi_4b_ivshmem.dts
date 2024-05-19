@@ -1,0 +1,83 @@
+/*
+ * Copyright 2024 openEuler Embedded
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <broadcom/bcm2711.dtsi>
+
+/ {
+	model = "Raspberry Pi 4 Model B";
+	compatible = "raspberrypi,4-model-b", "brcm,bcm2838";
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	chosen {
+        zephyr,console = &uart1;
+		zephyr,shell-uart = &uart_rpmsg0;
+		zephyr,sram = &sram1;
+        zephyr,pcie-controller = &pcie;
+	};
+
+	uart_rpmsg0: ep0 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		/* the rpmsg-tty driver requires ep-name should be rpmsg-tty* */
+		ep-name = "rpmsg-tty0";
+	};
+
+	uart_rpmsg1: ep1 {
+		status = "okay";
+		compatible = "zephyr,rpmsg-uart";
+		ep-name = "rpmsg-tty1";
+	};
+
+    soc {
+
+		sram1: memory@7a000000 {
+			compatible = "mmio-sram";
+			reg = <0x7a000000 DT_SIZE_M(10)>;
+		};
+
+		pcie: pcie@ff900000 {
+			compatible = "pci-host-ecam-generic";
+			device_type = "pci";
+			reg = <0xff900000 0x100000>;
+			#size-cells = <0x02>;
+			#address-cells = <0x03>;
+			ranges = <0x02000000 0x00 0x10000000 0x10000000 0x00 0x10000>;
+			#interrupt-cells = <0x01>;
+			interrupt-map-mask = <0x00 0x00 0x00 0x07>;
+			interrupt-map = <
+				0x00 0x00 0x00 1 &gic GIC_SPI 108 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 2 &gic GIC_SPI 109 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 3 &gic GIC_SPI 110 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY
+				0x00 0x00 0x00 4 &gic GIC_SPI 111 IRQ_TYPE_EDGE IRQ_DEFAULT_PRIORITY>;
+			bus-range = <0x00 0x00>;
+		};
+
+	};
+
+};
+
+&uart1 {
+	status = "okay";
+	current-speed = <115200>;
+};
+
+&pcie {
+	ivshmem0: ivshmem@0 {
+		compatible = "qemu,ivshmem";
+		ivshmem-v2;
+		vendor-id = <0x110A>;           /* Siemens */
+		device-id = <0x4106>;           /* IVSHMEM */
+		class-rev = <0xFF400100>;       /* PCI_CLASS_OTHERS | IVSHMEM_PROTO_RPMSG */
+		class-rev-mask = <0xFFFFFF00>;  /* PCI_CLASS_MASK | IVSHMEM_PROTO_MASK */
+		interrupt-parent = <&pcie>;
+		interrupts = <1 2 3 4>;
+		reg = <0x00 0x00 0x00 0x00 0x01>;
+		status = "okay";
+	};
+};

@@ -148,12 +148,12 @@ static void ivshmem_event_poll_thread_entry(void *arg1, void *arg2, void *arg3)
 	ret = ivshmem_register_handler(ivshmem_dev, &sig, 0);
 
 	if (ret < 0) {
-		LOG_ERR("registering handlers must be supported: %d\n", ret);
+		LOG_ERR("registering handlers must be supported: %d", ret);
 		k_panic();
 	}
 
 	while (1) {
-		LOG_DBG("%s: waiting interrupt from remote peers...\n", __func__);
+		LOG_DBG("waiting interrupt from remote peers...");
 		ret = k_poll(events, ARRAY_SIZE(events), K_FOREVER);
 
 		k_poll_signal_check(&sig, &poll_signaled, &ivshmem_vector_rx);

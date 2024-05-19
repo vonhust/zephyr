@@ -289,7 +289,7 @@ int uart_rpmsg_init(const struct device *dev)
 
 #endif
 
-	LOG_INF("IPC UART initialized successfully");
+	LOG_INF("%s initialized successfully", data->name);
 
 	return 0;
 }

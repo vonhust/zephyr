@@ -50,6 +50,7 @@
 			interrupt-controller;
 			#interrupt-cells = <4>;
 			status = "okay";
+			#address-cells = <0x00>;
 		};
 
 		gpio: gpio@fe200000 {
