@@ -13,11 +13,6 @@
 	model = "QEMU Cortex-A53";
 	compatible = "qemu,arm-cortex-a53";
 
-	psci {
-		compatible = "arm,psci-0.2";
-		method = "hvc";
-	};
-
 	chosen {
 		zephyr,sram = &sram1;
 		/* uart0 is used for debug, which also may be used by Linux */

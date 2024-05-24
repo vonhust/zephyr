@@ -1,0 +1,35 @@
+/*
+ * Copyright 2024 openEuler Embedded
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+#include "qemu_cortex_a53_ivshmem.dts"
+
+/ {
+	#address-cells = <2>;
+	#size-cells = <2>;
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <2>;
+		};
+
+		cpu@1 {
+			device_type = "cpu";
+			compatible = "arm,cortex-a53";
+			reg = <3>;
+		};
+	};
+};
