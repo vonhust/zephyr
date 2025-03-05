@@ -6,3 +6,5 @@ board:
     variants:
     - name: smp
     - name: xip
+    - name: remote
+    - name: ivshmem

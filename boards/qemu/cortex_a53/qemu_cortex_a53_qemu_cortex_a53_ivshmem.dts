@@ -25,7 +25,7 @@
 		zephyr,console = &uart0;
 		zephyr,shell-uart = &uart_rpmsg0;
 		zephyr,flash = &flash0;
-		zephyr,pcie-controller = &pcie;
+		zephyr,pcie-controller = &pcie_jailhouse;
 	};
 
 	uart_rpmsg0: ep0 {
@@ -48,7 +48,7 @@
 			reg = <0x0 0x7a000000 0x0 DT_SIZE_M(10)>;
 		};
 
-		pcie: pcie@8e00000 {
+		pcie_jailhouse: pcie@8e00000 {
 			compatible = "pci-host-ecam-generic";
 			device_type = "pci";
 			reg = <0x00 0x08e00000 0x00 0x100000>;
@@ -74,6 +74,10 @@
 };
 
 &pcie {
+	status = "disabled";
+};
+
+&pcie_jailhouse {
 	ivshmem0: ivshmem@0 {
 		compatible = "qemu,ivshmem";
 		ivshmem-v2;
@@ -81,7 +85,7 @@
 		device-id = <0x4106>;           /* IVSHMEM */
 		class-rev = <0xFF400100>;       /* PCI_CLASS_OTHERS | IVSHMEM_PROTO_RPMSG */
 		class-rev-mask = <0xFFFFFF00>;  /* PCI_CLASS_MASK | IVSHMEM_PROTO_MASK */
-		interrupt-parent = <&pcie>;
+		interrupt-parent = <&pcie_jailhouse>;
 		interrupts = <1 2 3 4>;
 		reg = <0x00 0x00 0x00 0x00 0x01>;
 		status = "okay";

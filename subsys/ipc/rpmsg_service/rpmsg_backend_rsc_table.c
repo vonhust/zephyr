@@ -160,8 +160,8 @@ static void ipm_callback(const struct device *dev,
 	uint32_t status;
 
 	rsc = (struct fw_resource_table *)context;
-	metal_cache_invalidate(rsc->reserved, sizeof(rsc->reserved));
-	status = rsc->reserved[0];
+	metal_cache_invalidate(rsc->hdr.reserved, sizeof(rsc->hdr.reserved));
+	status = rsc->hdr.reserved[0];
 
 	(void)dev;
 
@@ -183,8 +183,8 @@ static void ipm_callback(const struct device *dev,
 		/* attach work: reset virtqueue */
 		reset_vq();
 		/* clear reserved[0] after the reset work is completed */
-		rsc->reserved[0] = 0;
-		metal_cache_flush(rsc->reserved, sizeof(rsc->reserved));
+		rsc->hdr.reserved[0] = 0;
+		metal_cache_flush(rsc->hdr.reserved, sizeof(rsc->hdr.reserved));
 	}
 }
 
@@ -273,7 +273,7 @@ int rpmsg_backend_init(struct metal_io_region **io, struct virtio_device **vdev)
 		return err;
 	}
 
-	rsc_table_get(&rsc_table, &rsc_size);
+	rsc_table_get((struct fw_resource_table **)&rsc_table, &rsc_size);
 	metal_io_init(&device->regions[1], rsc_table,
 		      (metal_phys_addr_t *)rsc_table, rsc_size, -1, 0, NULL);
 	rsc_io = metal_device_io_region(device, 1);
